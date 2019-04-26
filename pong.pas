@@ -202,10 +202,11 @@ var
   tx, ty, tw, th: integer;
   left, top: integer;
   c: char;
+  i: integer;
 begin
-  for c in Text do
+  for i := 1 to Length(Text) do
   begin
-    c := upCase(c);
+    c := UpCase(Text[i]);
     if (c > ' ') and (c < '`') then
     begin
       tx := x;
@@ -225,9 +226,9 @@ begin
           begin
             if Font[fy][fx] = 1 then
               Screen[top * Width + left] := color;
-            fx += 1;
+            fx := fx + 1;
           end;
-          fy += 1;
+          fy := fy + 1;
         end;
       end;
     end;
@@ -267,7 +268,7 @@ var
   ymove: integer;
 begin
   ymove := InputCb(Id, 1, 0, JoypadDown) - InputCb(Id, 1, 0, JoypadUp);
-  Y += ymove;
+  Y := Y + ymove;
 end;
 
 procedure TPlayer.Draw();
@@ -292,12 +293,12 @@ procedure TBall.Update();
 var
   i: integer;
 begin
-  Y += VSpeed;
+  Y := Y + VSpeed;
   if (Y < 0) or (Y + H >= Height) then
     VSpeed := -VSpeed
   else
   begin
-    X += HSpeed;
+    X := X + HSpeed;
 
     if (X <= Player[1].X + Player[1].W) and
       ((Y + H >= Player[1].Y) and (Y <= Player[1].Y + Player[1].H)) then
@@ -458,12 +459,12 @@ begin
 
         if Ball.X + Ball.W < Player[1].X then
         begin
-          Player[2].Score += 1;
+          Player[2].Score := Player[2].Score + 1;
           Ball.Reset();
         end
         else if Ball.X > Player[2].X + Player[2].W then
         begin
-          Player[1].Score += 1;
+          Player[1].Score := Player[1].Score + 1;
           Ball.Reset();
         end;
       end;
