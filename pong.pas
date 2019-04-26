@@ -289,8 +289,6 @@ begin
 end;
 
 procedure TBall.Update();
-var
-  i: integer;
 begin
   Y := Y + VSpeed;
   if (Y < 0) or (Y + H >= Height) then
