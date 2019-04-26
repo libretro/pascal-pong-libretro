@@ -31,8 +31,7 @@ library paspong;
 {$Mode OBJFPC}
 
 uses
-  Math,
-  SysUtils;
+  Math;
 
 const
   Font: array [0..7, 0..511] of $0..$1 = (
@@ -422,6 +421,7 @@ end;
 procedure retro_run; cdecl;
 var
   i: integer;
+  Text: String;
 begin
   PollCb();
 
@@ -445,8 +445,8 @@ begin
         retro_reset()
       else
       begin
-        DrawText(Format('%2d/%-2d', [Player[1].Score, Player[2].Score]),
-          (Width - 8 * 5) div 2, 8, White);
+        WriteStr(Text, Player[1].Score:2, '/', Player[2].Score:-2);
+        DrawText(Text, (Width - 8 * 5) div 2, 8, White);
 
         for i := 1 to 2 do
         begin
