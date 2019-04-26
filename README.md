@@ -1,4 +1,4 @@
-# pascal-pong-libretro
+# Enygmata's Pascal Pong
 
 ## Building
 

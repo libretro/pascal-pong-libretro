@@ -368,7 +368,7 @@ end;
 
 procedure retro_get_system_info(info: PRetroSystemInfo); cdecl;
 begin
-  info^.LibraryName := 'pascal test';
+  info^.LibraryName := 'Enygmata''s Pascal Pong';
   info^.LibraryVersion := '1.0';
 end;
 
