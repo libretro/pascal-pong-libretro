@@ -31,8 +31,7 @@ library paspong;
 {$Mode OBJFPC}
 
 uses
-  Math,
-  SysUtils;
+  Math;
 
 const
   Font: array [0..7, 0..511] of $0..$1 = (
@@ -202,10 +201,11 @@ var
   tx, ty, tw, th: integer;
   left, top: integer;
   c: char;
+  i: integer;
 begin
-  for c in Text do
+  for i := 1 to Length(Text) do
   begin
-    c := upCase(c);
+    c := UpCase(Text[i]);
     if (c > ' ') and (c < '`') then
     begin
       tx := x;
@@ -225,9 +225,9 @@ begin
           begin
             if Font[fy][fx] = 1 then
               Screen[top * Width + left] := color;
-            fx += 1;
+            fx := fx + 1;
           end;
-          fy += 1;
+          fy := fy + 1;
         end;
       end;
     end;
@@ -267,7 +267,7 @@ var
   ymove: integer;
 begin
   ymove := InputCb(Id, 1, 0, JoypadDown) - InputCb(Id, 1, 0, JoypadUp);
-  Y += ymove;
+  Y := Y + ymove;
 end;
 
 procedure TPlayer.Draw();
@@ -289,15 +289,13 @@ begin
 end;
 
 procedure TBall.Update();
-var
-  i: integer;
 begin
-  Y += VSpeed;
+  Y := Y + VSpeed;
   if (Y < 0) or (Y + H >= Height) then
     VSpeed := -VSpeed
   else
   begin
-    X += HSpeed;
+    X := X + HSpeed;
 
     if (X <= Player[1].X + Player[1].W) and
       ((Y + H >= Player[1].Y) and (Y <= Player[1].Y + Player[1].H)) then
@@ -370,7 +368,7 @@ end;
 
 procedure retro_get_system_info(info: PRetroSystemInfo); cdecl;
 begin
-  info^.LibraryName := 'pascal test';
+  info^.LibraryName := 'Enygmata''s Pascal Pong';
   info^.LibraryVersion := '1.0';
 end;
 
@@ -421,6 +419,7 @@ end;
 procedure retro_run; cdecl;
 var
   i: integer;
+  Text: String;
 begin
   PollCb();
 
@@ -444,8 +443,8 @@ begin
         retro_reset()
       else
       begin
-        DrawText(Format('%2d/%-2d', [Player[1].Score, Player[2].Score]),
-          (Width - 8 * 5) div 2, 8, White);
+        WriteStr(Text, Player[1].Score:2, '/', Player[2].Score:-2);
+        DrawText(Text, (Width - 8 * 5) div 2, 8, White);
 
         for i := 1 to 2 do
         begin
@@ -458,12 +457,12 @@ begin
 
         if Ball.X + Ball.W < Player[1].X then
         begin
-          Player[2].Score += 1;
+          Player[2].Score := Player[2].Score + 1;
           Ball.Reset();
         end
         else if Ball.X > Player[2].X + Player[2].W then
         begin
-          Player[1].Score += 1;
+          Player[1].Score := Player[1].Score + 1;
           Ball.Reset();
         end;
       end;

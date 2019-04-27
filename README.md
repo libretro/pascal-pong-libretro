@@ -1,7 +1,11 @@
-# pascal-pong-libretro
+# Enygmata's Pascal Pong
 
-## Bulding
+## Building
 
-	fpc -opong_libretro.so pong.pas
+    make
+
+## Using
+
+    retroarch -L pong_libretro.so
 
 
