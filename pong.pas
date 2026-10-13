@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 library pong;
 
 uses
-  Math;
+  LibRetro, Math;
 
 const
   Font: array [0..7, 0..511] of $0..$1 = (
@@ -44,55 +44,6 @@ const
 );
 
 type
-  TRetroEnvironment = function(cmd: UInt32; Data: Pointer): boolean; cdecl;
-  TRetroVideoRefresh = procedure(Data: Pointer; Width: UInt32;
-    Height: UInt32; pitch: SizeUInt); cdecl;
-  TRetroAudioSample = procedure(left: Int16; right: Int16); cdecl;
-  TRetroAudioSampleBatch = function(Data: PInt16;
-    frames: SizeUInt): Int16; cdecl;
-  TRetroInputPoll = procedure; cdecl;
-  TRetroInputState = function(port: UInt32; device: UInt32;
-    index: UInt32; id: UInt32): Int16; cdecl;
-
-  PRetroSystemInfo = ^TRetroSystemInfo;
-
-  TRetroSystemInfo = record
-    LibraryName: PAnsiChar;
-    LibraryVersion: PAnsiChar;
-    ValidExtensions: PAnsiChar;
-    NeedFullpath: boolean;
-    BlockExtract: boolean;
-  end;
-
-  TRetroGameGeometry = record
-    BaseWidth: UInt32;
-    BaseHeight: UInt32;
-    MaxWidth: UInt32;
-    MaxHeight: UInt32;
-    AspectRatio: single;
-  end;
-
-  TRetroSystemTiming = record
-    FPS: double;
-    SampleRate: double;
-  end;
-
-  PRetroSystemAvInfo = ^TRetroSystemAvInfo;
-
-  TRetroSystemAvInfo = record
-    Geometry: TRetroGameGeometry;
-    Timing: TRetroSystemTiming;
-  end;
-
-  PRetroGameInfo = ^TRetroGameInfo;
-
-  TRetroGameInfo = record
-    Path: PAnsiChar;
-    Data: Pointer;
-    Size: SizeUInt;
-    Meta: PAnsiChar;
-  end;
-
   PTARGB1555 = ^TARGB1555;
 
   TARGB1555 = bitpacked record
@@ -154,6 +105,7 @@ var
   VideoCb: TRetroVideoRefresh;
   PollCb: TRetroInputPoll;
   InputCb: TRetroInputState;
+  SupportsInputBitmasks: Boolean;
   Screen: array [0..(Width * Height)] of TARGB1555;
   Player: array [1..2] of TPlayer;
   Ball: TBall;
@@ -258,13 +210,44 @@ begin
   end;
 end;
 
+function GetInputBitmask(port, device, index: cardinal): word; inline;
+var
+  i: word;
+  ret: word;
+begin
+  if SupportsInputBitmasks then
+  begin
+    ret := InputCb(port, device, index, RETRO_DEVICE_ID_JOYPAD_MASK);
+  end
+  else
+  begin
+    ret := 0;
+    for i:= 0 to RETRO_DEVICE_ID_JOYPAD_R3 - 1 do
+    begin
+      if InputCb(port, device, index, i) <> 0 then
+      begin
+        ret := ret or (1 shl i);
+      end
+    end;
+  end;
+
+  GetInputBitmask := ret;
+end;
+
+function GetButton(bitmask: word; button: cardinal): word; inline;
+begin
+  GetButton := Ord(bitmask and (1 shl button) <> 0);
+end;
+
 // METHODS ---------------------------------------------------------------------
 
 procedure TPlayer.Update();
 var
+  ib: word;
   ymove: integer;
 begin
-  ymove := InputCb(Id, 1, 0, JoypadDown) - InputCb(Id, 1, 0, JoypadUp);
+  ib := GetInputBitmask(Id, 1, 0);
+  ymove := GetButton(ib, JoypadDown) - GetButton(ib, JoypadUp);
   Y := Y + ymove;
 end;
 
@@ -353,10 +336,12 @@ end;
 procedure retro_init; cdecl;
 begin
   Randomize;
+  SupportsInputBitmasks := EnvCb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nil);
 end;
 
 procedure retro_deinit; cdecl;
 begin
+  SupportsInputBitmasks := false;
 end;
 
 function retro_api_version: UInt32; cdecl;
@@ -417,16 +402,18 @@ end;
 procedure retro_run; cdecl;
 var
   i: integer;
+  ib: word;
   Text: String;
 begin
   PollCb();
 
   Clear(Black);
 
+  ib := GetInputBitmask(0, 1, 0);
   case GameState of
     gsStart:
     begin
-      if InputCb(0, 1, 0, JoypadA) <> 0 then
+      if GetButton(ib, JoypadA) <> 0 then
         GameState := gsPlaying;
 
       DrawTextCentered('enygmata''s pascal pong', 0, -2, Yellow);
@@ -436,8 +423,8 @@ begin
     end;
     gsPlaying:
     begin
-      if (InputCb(0, 1, 0, JoypadB) <> 0) or
-        (InputCb(0, 1, 0, JoypadB) <> 0) then
+      if (GetButton(ib, JoypadB) <> 0) or
+        (GetButton(ib, JoypadB) <> 0) then
         retro_reset()
       else
       begin
