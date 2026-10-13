@@ -55,10 +55,18 @@ type
   end;
 
 const
-  RETRO_ENVIRONMENT_EXPERIMENTAL = $10000;
-  RETRO_ENVIRONMENT_GET_INPUT_BITMASKS = 51 or RETRO_ENVIRONMENT_EXPERIMENTAL;
-  RETRO_DEVICE_ID_JOYPAD_R3 = 15;
-  RETRO_DEVICE_ID_JOYPAD_MASK = 256;
+  ExperimentalFeature = $10000;
+  GetInputBitmasks = 51 or ExperimentalFeature;
+  JoypadB = 0;
+  JoypadSelect = 2;
+  JoypadStart = 3;
+  JoypadUp = 4;
+  JoypadDown = 5;
+  JoypadLeft = 6;
+  JoypadRight = 7;
+  JoypadA = 8;
+  JoypadR3 = 15;
+  JoypadMask = 256;
 
 implementation
 
