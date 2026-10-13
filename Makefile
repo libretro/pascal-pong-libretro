@@ -1,9 +1,7 @@
 .PHONY: clean
 
-FPC ?= fpc
-
 pong_libretro.so: pong.pas
-	$(FPC) -o$@ $<
+	$${FPC:-fpc} -o$@ pong.pas
 
 clean:
 	rm -f pong_libretro.so
